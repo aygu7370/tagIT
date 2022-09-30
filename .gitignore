@@ -54,3 +54,5 @@ dkms.conf
 # Altium history files
 
 board_design/History/
+board_design/TagIT_Design/History/
+board_design/Project Outputs for TagIT_PCB/
