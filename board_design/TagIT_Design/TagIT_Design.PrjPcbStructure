@@ -1,2 +1,5 @@
-Record=TopLevelDocument|FileName=EFR32MG24_MCU_Circuit.SchDoc|SheetNumber=1
-Record=NoMainPathDocument|SourceDocument=EFR32MG24_MCU_Circuit.SchDoc|FileName=PowerSupply.SchDoc|SheetNumber=2
+Record=TopLevelDocument|FileName=FunctionalBlockDiagram.SchDoc|SheetNumber=1
+Record=SheetSymbol|SourceDocument=FunctionalBlockDiagram.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=SensorsNetwork.SchDoc|SheetNumber=4|SymbolType=Normal|RawFileName=SensorsNetwork.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=FunctionalBlockDiagram.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=PeripheralsDesign.SchDoc|SheetNumber=5|SymbolType=Normal|RawFileName=PeripheralsDesign.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=FunctionalBlockDiagram.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=PowerSupply.SchDoc|SheetNumber=3|SymbolType=Normal|RawFileName=PowerSupply.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=FunctionalBlockDiagram.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=EFR32MG24_MCU_Circuit.SchDoc|SheetNumber=2|SymbolType=Normal|RawFileName=EFR32MG24_MCU_Circuit.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
