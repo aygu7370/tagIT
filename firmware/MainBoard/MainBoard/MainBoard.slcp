@@ -46,6 +46,7 @@ component:
 - {id: btmesh_feature_relay}
 - {id: btmesh_proxy}
 - {id: simple_led_core}
+- {id: btmesh_feature_generic_server}
 - {id: app_button_press}
 - {id: app_log}
 - instance: [vcom]

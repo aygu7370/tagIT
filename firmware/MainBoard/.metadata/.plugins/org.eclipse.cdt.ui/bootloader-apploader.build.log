@@ -1,0 +1,6 @@
+20:35:16 **** Incremental Build of configuration GNU ARM v10.3.1 - Default for project bootloader-apploader ****
+make -j8 all 
+make: Nothing to be done for 'all'.
+
+20:35:17 Build Finished. 0 errors, 0 warnings. (took 656ms)
+

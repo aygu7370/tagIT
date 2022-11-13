@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include "sl_btmesh_api.h"
 #include "sl_bt_api.h"
+#include "sl_btmesh_lib.h"
 
 #include "app.h"
 #include "app_assert.h"
@@ -48,6 +49,7 @@
 #include "sl_simple_timer.h"
 #include "sl_btmesh_factory_reset.h"
 #include "sl_btmesh_provisioning_decorator.h"
+#include "sl_btmesh_generic_model_capi_types.h"
 
 #ifdef SL_COMPONENT_CATALOG_PRESENT
 #include "sl_component_catalog.h"
@@ -105,6 +107,8 @@ static uint8_t num_connections = 0;
 
 static bool init_done = false;
 
+static uint8_t tid = 0;
+
 /**************************************************************************//**
  * Application Init.
  *****************************************************************************/
@@ -114,6 +118,7 @@ SL_WEAK void app_init(void)
   // Put your additional application init code here!                         //
   // This is called once during start-up.                                    //
   /////////////////////////////////////////////////////////////////////////////
+  app_button_press_enable();
 }
 
 /**************************************************************************//**
@@ -354,11 +359,31 @@ void sl_btmesh_on_event(sl_btmesh_msg_t *evt)
   }
 }
 
+void TagBoard_Node_1_Toggle()
+{
+  struct mesh_generic_request req;
+  req.kind = mesh_generic_request_level;
+  req.level = 40;
+  sl_status_t ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
+  app_log("Send message status: %d\r\n", ret);
+}
+
+void TagBoard_Node_2_Toggle()
+{
+  struct mesh_generic_request req;
+  req.kind = mesh_generic_request_level;
+  req.level = 80;
+  sl_status_t ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
+  app_log("Send message status: %d\r\n", ret);
+}
+
 /***************************************************************************//**
  * Callbacks
  ******************************************************************************/
 void app_button_press_cb(uint8_t button, uint8_t duration)
 {
+
+  volatile sl_status_t ret;
   (void)duration;
   if (duration == APP_BUTTON_PRESS_NONE) {
     return;
@@ -367,15 +392,32 @@ void app_button_press_cb(uint8_t button, uint8_t duration)
   if (button == BUTTON_PRESS_BUTTON_0) {
     if (duration < APP_BUTTON_PRESS_DURATION_LONG) {
       app_log("PB0 pressed\r\n");
+
+//      uint8_t value = 40;
+//      uint8_t sensor_data[NAME_BUF_LEN];
+//      uint8_t len = 0;
+//      len = mesh_sensor_data_to_buf(LIGHT_CONTROL_LIGHTNESS_ON, &sensor_data[len], (uint8_t*)&value);
+//      ret = sl_btmesh_sensor_client_set_setting(MESH_GENERIC_ON_OFF_SERVER_MODEL_ID, 0, 0, 0, LIGHT_CONTROL_LIGHTNESS_ON, 0, len, sensor_data);
+
 //      sensor_client_change_current_property();
+      struct mesh_generic_request req;
+            req.kind = mesh_generic_request_level;
+            req.level = 80;
+            ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
     } else {
       app_log("PB0 long pressed\r\n");
+
 //      update_registered_devices();
     }
   } else if (button == BUTTON_PRESS_BUTTON_1) {
     app_log("PB1 pressed\r\n");
+    struct mesh_generic_request req;
+    req.kind = mesh_generic_request_level;
+    req.level = 40;
+    ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
 //    update_registered_devices();
   }
+  app_log("Send message status: %d\r\n", ret);
 }
 
 /***************************************************************************//**

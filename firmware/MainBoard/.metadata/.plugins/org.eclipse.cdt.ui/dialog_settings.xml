@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item key="LastUsedSourceTemplate" value="Default C source template"/>
+	<item key="LastUsedHeaderTemplate" value="Default C header template"/>
+	<section name="completion_proposal_size">
+	</section>
+	<section name="org.eclipse.cdt.ui.text.hover.CMacroExpansionExploration">
+	</section>
+	<section name="PDOMSearchPage">
+		<item key="caseSensitive" value="false"/>
+		<item key="searchFlags" value="227191"/>
+		<list key="previousPatterns">
+			<item value="generic_client_impl"/>
+			<item value="generic_client"/>
+			<item value="MESH_GENERIC_ON_OFF_CLIENT_MODEL_ID"/>
+			<item value="MESH_GENERIC_LEVEL_CLIENT_MODEL_ID"/>
+			<item value="sl_btmesh_evt_generic_server_client_request_id"/>
+			<item value="LIGHT_CONTROL_LIGHTNESS_PROLONG"/>
+			<item value="app_button_press_enable"/>
+			<item value="button"/>
+			<item value="app_button_press_cb"/>
+			<item value="mesh"/>
+			<item value="buf"/>
+			<item value="buffer"/>
+			<item value="_to_"/>
+			<item value="_"/>
+			<item value="to_"/>
+			<item value="to_buf"/>
+			<item value="setting_id"/>
+			<item value="settings_id"/>
+			<item value="PEOPLE_COUNT"/>
+			<item value="sl_btmesh_sensor_client_set_setting"/>
+			<item value="sl_btmesh_sensor_server_send_status"/>
+			<item value="sl_btmesh_generic_base_on_event"/>
+			<item value="sl_btmesh_generic_server_init_common"/>
+			<item value="generic"/>
+			<item value="__mesh_dcd"/>
+		</list>
+	</section>
+	<section name="org.eclipse.cdt.ui.OPEN_ACTION_SELECTION_DIALOG_SECTION">
+		<item key="DIALOG_X_ORIGIN" value="642"/>
+		<item key="DIALOG_Y_ORIGIN" value="41"/>
+		<item key="DIALOG_WIDTH" value="658"/>
+		<item key="DIALOG_HEIGHT" value="711"/>
+		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
+	</section>
+</section>

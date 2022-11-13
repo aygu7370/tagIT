@@ -1,0 +1,7 @@
+22:17:05 **** Clean-only build of configuration GNU ARM v10.3.1 - Default for project TagBoard ****
+make -j8 clean 
+rm -rf TagBoard.axf
+ 
+
+22:17:20 Build Finished. 0 errors, 0 warnings. (took 14s.390ms)
+

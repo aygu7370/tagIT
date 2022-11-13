@@ -57,6 +57,8 @@
 #include "sl_btmesh_factory_reset.h"
 #include "sl_btmesh_provisioning_decorator.h"
 
+#include "TagBoard.h"
+
 /// High Priority
 #define HIGH_PRIORITY                  0
 /// No Timer Options
@@ -268,6 +270,10 @@ static void handle_node_initialized_event(
 
       app_assert_status_f(sc, "Failed to start unprovisioned beaconing\n");
     }
+  else
+    {
+      TagIt_InitModel();
+    }
 }
 
 /***************************************************************************//**
@@ -341,6 +347,9 @@ void sl_btmesh_on_event(sl_btmesh_msg_t *evt)
 {
   sl_status_t sc;
   switch (SL_BT_MSG_ID(evt->header)) {
+    case sl_btmesh_evt_node_provisioned_id:
+      TagIt_InitModel();
+      break;
     case sl_btmesh_evt_node_initialized_id:
       handle_node_initialized_event(&(evt->data.evt_node_initialized));
       break;
