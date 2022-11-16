@@ -1,0 +1,86 @@
+/*
+ * TagBoard.c
+ *
+ *  Created on: 12-Nov-2022
+ *      Author: Sankalp
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "sl_btmesh_api.h"
+
+#include "sl_status.h"
+#include "sl_btmesh_generic_model_capi_types.h"
+#include "sl_btmesh_lib.h"
+#include "sl_btmesh_serdeser.h"
+#include "sl_malloc.h"
+
+#define BTMESH_TAGBOARD_SERVER_MAIN 0
+
+static void level_request(uint16_t model_id,
+                          uint16_t element_index,
+                          uint16_t client_addr,
+                          uint16_t server_addr,
+                          uint16_t appkey_index,
+                          const struct mesh_generic_request *request,
+                          uint32_t transition_ms,
+                          uint16_t delay_ms,
+                          uint8_t request_flags)
+{
+}
+
+
+static void level_change(uint16_t model_id,
+                         uint16_t element_index,
+                         const struct mesh_generic_state *current,
+                         const struct mesh_generic_state *target,
+                         uint32_t remaining_ms)
+{
+}
+
+static void level_recall(uint16_t model_id,
+                         uint16_t element_index,
+                         const struct mesh_generic_state *current,
+                         const struct mesh_generic_state *target,
+                         uint32_t transition_ms)
+{
+}
+
+/***************************************************************************//**
+ * Wrapper for mesh_lib_generic_server_register_handler with an assert which
+ * detects if the Btmesh API call results in error. The parameters of the two
+ * functions are the same but the wrapper does not have return value.
+ ******************************************************************************/
+static void cc(uint16_t model_id,uint16_t elem_index,
+                mesh_lib_generic_server_client_request_cb cb,
+                mesh_lib_generic_server_change_cb ch,
+                mesh_lib_generic_server_recall_cb recall)
+{
+  sl_status_t sc =
+    mesh_lib_generic_server_register_handler(model_id, elem_index, cb, ch, recall);
+
+  app_assert_status_f(sc,
+                      "Lighting server failed to register handlers "
+                      "(mdl=0x%04x,elem=%d)\n",
+                      model_id,
+                      elem_index);
+}
+
+
+void _RegisterMethods()
+{
+  sl_status_t  status = 0;
+  status = generic_server_register_handler(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID,
+                            1,
+                            onoff_request,
+                            onoff_change,
+                            onoff_recall);
+}
+
+void TagIt_InitModel()
+{
+  _RegisterMethods();
+}
+

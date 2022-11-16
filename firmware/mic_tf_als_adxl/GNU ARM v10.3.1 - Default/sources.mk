@@ -26,6 +26,7 @@ CPP_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+.metadata/.plugins/org.eclipse.cdt.make.core \
 . \
 autogen \
 gecko_sdk_4.1.1/hardware/board/src \

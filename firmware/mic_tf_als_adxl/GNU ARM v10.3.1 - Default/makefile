@@ -66,6 +66,7 @@ RM := rm -rf
 -include gecko_sdk_4.1.1/hardware/driver/mic/src/subdir.mk
 -include gecko_sdk_4.1.1/hardware/board/src/subdir.mk
 -include autogen/subdir.mk
+-include .metadata/.plugins/org.eclipse.cdt.make.core/subdir.mk
 -include subdir.mk
 -include objects.mk
 
