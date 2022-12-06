@@ -1,0 +1,7 @@
+23:42:04 **** Clean-only build of configuration GNU ARM v10.3.1 - Default for project MainBoard ****
+make -j8 clean 
+rm -rf MainBoard.axf
+ 
+
+23:42:14 Build Finished. 0 errors, 0 warnings. (took 10s.162ms)
+
