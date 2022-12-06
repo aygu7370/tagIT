@@ -16,5 +16,22 @@ I2C_TransferReturn_TypeDef I2C_transaction (I2C_TypeDef *i2c, uint32_t address, 
 void I2C_ResetAccelInterrupts();
 void I2C_AccelInit();
 void I2C_GetDeviceID();
+void I2C_ALSInit();
+void I2C_GetALSData();
+void I2C_GetAcclData ();
 void GPIO_InitForInterrupt();
+
+
+/************************************************************
+ *              PUBLIC FUNCTIONS
+ ************************************************************/
+
+/*
+ * */
+void getTagItInit();
+
+/*
+ * */
+void getTagItSensorData();
+
 #endif /* TAGITI2C_H_ */

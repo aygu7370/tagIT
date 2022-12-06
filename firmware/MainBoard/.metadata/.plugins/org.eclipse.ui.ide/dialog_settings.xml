@@ -21,6 +21,9 @@
 		<item key="SmartImportRootWizardPage.STORE_NESTED_PROJECTS" value="true"/>
 		<item key="SmartImportRootWizardPage.STORE_CONFIGURE_NATURES" value="true"/>
 		<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+			<item value="D:\CUBoulder\LPDET\Project\tagIT\firmware\mic_tf_als_adxl"/>
+			<item value="D:\CUBoulder\LPDET\Project\tagIT\firmware\i2cspm_baremetal"/>
+			<item value="D:\CUBoulder\LPDET\Project\Integartion\tagIT\firmware\MainBoard"/>
 			<item value="D:\CUBoulder\LPDET\Project\tagIT\firmware\MainBoard"/>
 		</list>
 	</section>

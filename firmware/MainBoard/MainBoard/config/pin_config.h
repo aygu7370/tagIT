@@ -86,6 +86,18 @@
 // [TIMER4]$
 
 // $[USART0]
+// USART0 CLK on PD03
+#define USART0_CLK_PORT                          gpioPortD
+#define USART0_CLK_PIN                           3
+
+// USART0 CS on PD05
+#define USART0_CS_PORT                           gpioPortD
+#define USART0_CS_PIN                            5
+
+// USART0 RX on PD04
+#define USART0_RX_PORT                           gpioPortD
+#define USART0_RX_PIN                            4
+
 // [USART0]$
 
 // $[I2C1]

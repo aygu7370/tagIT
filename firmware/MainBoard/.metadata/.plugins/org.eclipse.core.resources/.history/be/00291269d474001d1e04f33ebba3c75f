@@ -1,0 +1,754 @@
+/***************************************************************************//**
+ * @file
+ * @brief Core application logic.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2022 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "em_cmu.h"
+#include "em_common.h"
+#include "app_assert.h"
+#include "sl_status.h"
+#include "app.h"
+
+#include "sl_btmesh_api.h"
+#include "sl_bt_api.h"
+#include "sl_btmesh_lib.h"
+
+#include "app.h"
+#include "app_assert.h"
+#include "app_log.h"
+
+#include "gatt_db.h"
+#include "sl_btmesh_sensor_client.h"
+
+#include "app_button_press.h"
+#include "sl_mic.h"
+#include "sl_simple_led.h"
+#include "sl_simple_button_instances.h"
+#include "sl_simple_led_instances.h"
+#include "sl_simple_timer.h"
+//#include "sl_power_manager.h"
+#include "sl_btmesh_factory_reset.h"
+#include "sl_btmesh_provisioning_decorator.h"
+#include "sl_btmesh_generic_model_capi_types.h"
+#include "sl_sleeptimer.h"
+#include "ml/sensory.h"
+
+#ifdef SL_COMPONENT_CATALOG_PRESENT
+#include "sl_component_catalog.h"
+#endif // SL_COMPONENT_CATALOG_PRESENT
+
+#ifdef SL_CATALOG_BTMESH_WSTK_LCD_PRESENT
+#include "sl_btmesh_wstk_lcd.h"
+#endif // SL_CATALOG_BTMESH_WSTK_LCD_PRESENT
+
+/// High Priority
+#define HIGH_PRIORITY                  0
+/// No Timer Options
+#define NO_FLAGS                       0
+/// Callback has not parameters
+#define NO_CALLBACK_DATA               (void *)NULL
+/// timeout for registering new devices after startup
+#define DEVICE_REGISTER_SHORT_TIMEOUT  100
+/// timeout for registering new devices after startup
+#define DEVICE_REGISTER_LONG_TIMEOUT   20000
+/// timeout for periodic sensor data update
+#define SENSOR_DATA_TIMEOUT            2000
+/// Timeout for Blinking LED during provisioning
+#define APP_LED_BLINKING_TIMEOUT       250
+/// Connection uninitialized
+#define UNINITIALIZED_CONNECTION       0xFF
+/// Advertising Provisioning Bearer
+#define PB_ADV                         0x1
+/// GATT Provisioning Bearer
+#define PB_GATT                        0x2
+/// Length of the display name buffer
+#define NAME_BUF_LEN                   20
+/// Length of boot error message buffer
+#define BOOT_ERR_MSG_BUF_LEN           30
+/// Used button indexes
+#define BUTTON_PRESS_BUTTON_0          0
+#define BUTTON_PRESS_BUTTON_1          1
+
+/// Integer part of temperature
+#define INT_TEMP(x) (x / 2)
+/// Fractional part of temperature
+#define FRAC_TEMP(x) ((x * 5) % 10)
+
+/// Currently displayed property ID
+static mesh_device_properties_t current_property = PRESENT_AMBIENT_TEMPERATURE;
+
+
+/***************************************************************************//**
+ * Model configuration.
+ *
+ * You can update the model name in the include paths below to select a model:
+ * - hello_gecko: Detects "Hello Gecko", "Bye Bye Gecko", "Gecko Green", and "Gecko Red".
+ * - go_silabs: Detects "Go Silabs".
+ * - voice_genie: Detects "Voice Genie".
+ * - voice_genie_small: A smaller model for detecting "Voice Genie"
+ ******************************************************************************/
+#include "ml/net.h"
+#include "ml/search.h"
+
+/***************************************************************************//**
+ * Definitions and local variables.
+ ******************************************************************************/
+#define DISPLAY_INFERENCE_TIME
+#define RED_LED       sl_led_led0
+#define GREEN_LED     sl_led_led1
+
+static int16_t mic_buffer[2 * BRICK_SIZE_SAMPLES];
+static sl_sleeptimer_timer_handle_t timer;
+
+static void on_mic_data(const void *buffer, uint32_t frames);
+static void process_brick_callback(recognition_context_t* context);
+static void print_banner(uint32_t sample_rate_hz);
+
+#if defined(DISPLAY_INFERENCE_TIME)
+static uint32_t avg_processing_ticks = 0;
+static uint32_t processing_step = 1;
+#endif // defined(DISPLAY_INFERENCE_TIME)
+
+
+// -------------------------------
+// Periodic timer handles
+//static sl_simple_timer_t app_sensor_data_timer;
+static sl_simple_timer_t app_update_registered_devices_timer;
+static sl_simple_timer_t app_led_blinking_timer;
+
+// -------------------------------
+// Periodic timer callbacks
+static void app_sensor_data_timer_cb(sl_simple_timer_t *handle,
+                                     void *data);
+static void app_update_registered_devices_timer_cb(sl_simple_timer_t *handle,
+                                                   void *data);
+static void app_led_blinking_timer_cb(sl_simple_timer_t *handle,
+                                      void *data);
+
+/// Number of active Bluetooth connections
+static uint8_t num_connections = 0;
+
+static bool init_done = false;
+
+static uint8_t tid = 0;
+
+/***************************************************************************//**
+ * Startup banner
+ ******************************************************************************/
+void print_banner(uint32_t sample_rate_hz)
+{
+#if defined(MODEL_NAME)
+  const char* model_name = MODEL_NAME;
+#else
+  const char* model_name = "Unknown";
+#endif // defined(MODEL_NAME)
+
+  printf("\r\n");
+  printf("####################################################################################\r\n");
+  printf("#   Core Frequency: %21ld [Hz], Sample rate: %21lu [Hz] #\r\n", CMU_ClockFreqGet(cmuClock_CORE), sample_rate_hz);
+  printf("####################################################################################\r\n");
+}
+void mic_app_init(void)
+{
+  int delay;
+  int param_a_offset;
+  const unsigned short *net;
+  const unsigned short *grammar;
+  uint8_t channels = 1;
+  uint32_t sample_rate_hz = (1000 * BRICK_SIZE_SAMPLES) / BRICK_SIZE_MS;
+
+  volatile sl_status_t retVal = 0;
+
+
+  // Initialize Sensory library.
+  delay        = 0;
+  param_a_offset = 0;
+  net          = dnn_wakeword_netLabel;
+  grammar      = gs_wakeword_grammarLabel;
+  errors_t result = SensoryInitialize((u32)net, (u32)grammar, param_a_offset, delay);
+
+//  // Add EM1 requirement to allow microphone sampling
+  sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
+
+  if (result == ERR_OK) {
+    // Start listening on microphone.
+//    sl_sleeptimer_init();
+
+      retVal = sl_mic_init(sample_rate_hz, channels);
+      retVal = sl_mic_start_streaming(mic_buffer, BRICK_SIZE_SAMPLES, on_mic_data);
+      (void)retVal;
+  } else {
+    printf("SensoryInitialize returned error 0x%x\n", result);
+  }
+
+  print_banner(sample_rate_hz);
+
+}
+/**************************************************************************//**
+ * Application Init.
+ *****************************************************************************/
+SL_WEAK void app_init(void)
+{
+  /////////////////////////////////////////////////////////////////////////////
+  // Put your additional application init code here!                         //
+  // This is called once during start-up.                                    //
+  /////////////////////////////////////////////////////////////////////////////
+  app_button_press_enable();
+  mic_app_init();
+}
+
+
+
+
+/**************************************************************************//**
+ * Application Process Action.
+ *****************************************************************************/
+SL_WEAK void app_process_action(void)
+{
+  /////////////////////////////////////////////////////////////////////////////
+  // Put your additional application code here!                              //
+  // This is called infinitely.                                              //
+  // Do not call blocking functions from here!                               //
+  /////////////////////////////////////////////////////////////////////////////
+}
+
+/***************************************************************************//**
+ * Set device name in the GATT database. A unique name is generated using
+ * the two last bytes from the UUID of this device. Name is also
+ * displayed on the LCD.
+ *
+ * @param[in] uuid  Pointer to device UUID.
+ ******************************************************************************/
+static void set_device_name(uuid_128 *uuid)
+{
+  char name[NAME_BUF_LEN];
+  sl_status_t result;
+
+  // Create unique device name using the last two bytes of the device UUID
+  snprintf(name,
+           NAME_BUF_LEN,
+           "MainBoard %02x%02x",
+           uuid->data[14],
+           uuid->data[15]);
+
+  app_log("Device name: '%s'\r\n", name);
+
+  result = sl_bt_gatt_server_write_attribute_value(gattdb_device_name,
+                                                   0,
+                                                   strlen(name),
+                                                   (uint8_t *)name);
+  if (result != SL_STATUS_OK) {
+    app_log("sl_bt_gatt_server_write_attribute_value() failed, code %x\r\n",
+            result);
+  }
+}
+
+/***************************************************************************//**
+ * Handles button press and does a factory reset
+ *
+ * @return true if there is no button press
+ ******************************************************************************/
+bool handle_reset_conditions(void)
+{
+  // If PB0 is held down then do full factory reset
+  if (sl_simple_button_get_state(&sl_button_btn0)
+      == SL_SIMPLE_BUTTON_PRESSED) {
+    // Disable button presses
+    app_button_press_disable();
+    // Full factory reset
+    sl_btmesh_initiate_full_reset();
+    return false;
+  }
+
+#ifndef SINGLE_BUTTON
+  // If PB1 is held down then do node factory reset
+  if (sl_simple_button_get_state(&sl_button_btn1)
+      == SL_SIMPLE_BUTTON_PRESSED) {
+    // Disable button presses
+    app_button_press_disable();
+    // Node factory reset
+    sl_btmesh_initiate_node_reset();
+    return false;
+  }
+#endif // SL_CATALOG_BTN1_PRESENT
+  return true;
+}
+
+/***************************************************************************//**
+ * Handling of boot event.
+ * If needed it performs factory reset. In other case it sets device name
+ * and initialize mesh node.
+ ******************************************************************************/
+static void handle_boot_event(void)
+{
+  sl_status_t sc;
+  char buf[BOOT_ERR_MSG_BUF_LEN];
+  uuid_128 uuid;
+  // Check reset conditions and continue if not reset.
+  if (handle_reset_conditions()) {
+    // Initialize Mesh stack in Node operation mode, wait for initialized event
+    sc = sl_btmesh_node_init();
+    if (sc != SL_STATUS_OK) {
+      snprintf(buf, BOOT_ERR_MSG_BUF_LEN, "init failed (0x%lx)", sc);
+      app_log("Initialization failed (0x%x)\r\n", sc);
+    } else {
+      sc = sl_btmesh_node_get_uuid(&uuid);
+      app_assert_status_f(sc, "Failed to get UUID\n");
+      set_device_name(&uuid);
+    }
+  }
+}
+
+/***************************************************************************//**
+ * Handling of mesh node initialized event.
+ * If device is provisioned it initializes the sensor server node.
+ * If device is unprovisioned it starts sending Unprovisioned Device Beacons.
+ *
+ * @param[in] evt  Pointer to mesh node initialized event.
+ ******************************************************************************/
+static void handle_node_initialized_event(
+  sl_btmesh_evt_node_initialized_t* evt)
+{
+  if (evt->provisioned) {
+    sl_status_t sc =
+      sl_simple_timer_start(&app_update_registered_devices_timer,
+                            DEVICE_REGISTER_SHORT_TIMEOUT,
+                            app_update_registered_devices_timer_cb,
+                            NO_CALLBACK_DATA,
+                            false);
+    app_assert_status_f(sc, "Failed to start timer\r\n");
+  } else {
+    // Enable ADV and GATT provisioning bearer
+    sl_status_t sc = sl_btmesh_node_start_unprov_beaconing(PB_ADV | PB_GATT);
+
+    app_assert_status_f(sc, "Failed to start unprovisioned beaconing\n");
+  }
+}
+
+/***************************************************************************//**
+ *  Handling of mesh node provisioning events.
+ *  It handles:
+ *   - mesh_node_provisioning_started
+ *   - mesh_node_provisioned
+ *   - mesh_node_provisioning_failed
+ *
+ *  @param[in] evt  Pointer to incoming provisioning event.
+ ******************************************************************************/
+void handle_node_provisioning_events(sl_btmesh_msg_t *evt)
+{
+  switch (SL_BT_MSG_ID(evt->header)) {
+    sl_status_t sc;
+    case sl_btmesh_evt_node_provisioned_id:
+      // Update registered devices after startup
+      sc = sl_simple_timer_start(&app_update_registered_devices_timer,
+                                 DEVICE_REGISTER_LONG_TIMEOUT,
+                                 app_update_registered_devices_timer_cb,
+                                 NO_CALLBACK_DATA,
+                                 false);
+      app_assert_status_f(sc, "Failed to start timer\r\n");
+      break;
+
+    default:
+      break;
+  }
+}
+
+/***************************************************************************//**
+ *  Handling of le connection events.
+ *  It handles:
+ *   - le_connection_opened
+ *   - le_connection_parameters
+ *   - le_connection_closed
+ *
+ *  @param[in] evt  Pointer to incoming connection event.
+ ******************************************************************************/
+static void handle_le_connection_events(sl_bt_msg_t *evt)
+{
+  switch (SL_BT_MSG_ID(evt->header)) {
+    case sl_bt_evt_connection_opened_id:
+      num_connections++;
+      app_log("Connected\r\n");
+      break;
+
+    case sl_bt_evt_connection_closed_id:
+      if (num_connections > 0) {
+        if (--num_connections == 0) {
+          app_log("Disconnected\r\n");
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+
+/**************************************************************************//**
+ * Bluetooth stack event handler.
+ * This overrides the dummy weak implementation.
+ *
+ * @param[in] evt Event coming from the Bluetooth stack.
+ *****************************************************************************/
+void sl_bt_on_event(struct sl_bt_msg *evt)
+{
+  switch (SL_BT_MSG_ID(evt->header)) {
+    case sl_bt_evt_system_boot_id:
+      handle_boot_event();
+      break;
+    ///////////////////////////////////////////////////////////////////////////
+    // Add additional event handlers here as your application requires!      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    case sl_bt_evt_connection_opened_id:
+    case sl_bt_evt_connection_parameters_id:
+    case sl_bt_evt_connection_closed_id:
+      handle_le_connection_events(evt);
+      break;
+
+    // -------------------------------
+    // Default event handler.
+    default:
+      break;
+  }
+}
+
+/**************************************************************************//**
+ * Bluetooth Mesh stack event handler.
+ * This overrides the dummy weak implementation.
+ *
+ * @param[in] evt Event coming from the Bluetooth Mesh stack.
+ *****************************************************************************/
+void sl_btmesh_on_event(sl_btmesh_msg_t *evt)
+{
+  switch (SL_BT_MSG_ID(evt->header)) {
+    case sl_btmesh_evt_node_initialized_id:
+      handle_node_initialized_event(&(evt->data.evt_node_initialized));
+      sl_btmesh_sensor_client_update_registered_devices(current_property);
+      break;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Add additional event handlers here as your application requires!      //
+    ///////////////////////////////////////////////////////////////////////////
+    case sl_btmesh_evt_node_provisioned_id:
+      handle_node_provisioning_events(evt);
+      break;
+    // -------------------------------
+    // Default event handler.
+    default:
+      break;
+  }
+}
+
+void TagBoard_Node_1_Toggle()
+{
+  struct mesh_generic_request req;
+  req.kind = mesh_generic_request_level;
+  req.level = 40;
+  sl_status_t ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
+  app_log("Send message status: %d\r\n", ret);
+}
+
+void TagBoard_Node_2_Toggle()
+{
+  struct mesh_generic_request req;
+  req.kind = mesh_generic_request_level;
+  req.level = 80;
+  sl_status_t ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
+  app_log("Send message status: %d\r\n", ret);
+}
+
+void Request_Level_ALS()
+{
+  sl_status_t ret = mesh_lib_generic_client_get(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 1, 0, 0,mesh_generic_state_level);
+  app_log("Send message status: %d\r\n", ret);
+}
+
+/***************************************************************************//**
+ * Callbacks
+ ******************************************************************************/
+void app_button_press_cb(uint8_t button, uint8_t duration)
+{
+
+  volatile sl_status_t ret;
+  (void)duration;
+  if (duration == APP_BUTTON_PRESS_NONE) {
+    return;
+  }
+  // button pressed
+  if (button == BUTTON_PRESS_BUTTON_0) {
+    if (duration < APP_BUTTON_PRESS_DURATION_LONG) {
+      app_log("PB0 pressed\r\n");
+
+//      uint8_t value = 40;
+//      uint8_t sensor_data[NAME_BUF_LEN];
+//      uint8_t len = 0;
+//      len = mesh_sensor_data_to_buf(LIGHT_CONTROL_LIGHTNESS_ON, &sensor_data[len], (uint8_t*)&value);
+//      ret = sl_btmesh_sensor_client_set_setting(MESH_GENERIC_ON_OFF_SERVER_MODEL_ID, 0, 0, 0, LIGHT_CONTROL_LIGHTNESS_ON, 0, len, sensor_data);
+
+//      sensor_client_change_current_property();
+//      struct mesh_generic_request req;
+//            req.kind = mesh_generic_request_level;
+//            req.level = 80;
+//            ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
+//      ret = sl_btmesh_sensor_client_get_sensor_data(current_property);
+      Request_Level_ALS();
+    } else {
+      app_log("PB0 long pressed\r\n");
+//      update_registered_devices();
+    }
+  } else if (button == BUTTON_PRESS_BUTTON_1) {
+      app_log("PB1 pressed\r\n");
+      struct mesh_generic_request req;
+      req.kind = mesh_generic_request_level;
+      req.level = 40;
+      ret = mesh_lib_generic_client_publish(MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, tid++, &req, 0, 0, 0);
+//    update_registered_devices();
+  }
+  app_log("Send message status: %d\r\n", ret);
+}
+
+void sl_btmesh_sensor_client_on_new_temperature_data(uint8_t sensor_idx,
+                                                     uint16_t address,
+                                                     sl_btmesh_sensor_client_data_status_t status,
+                                                     temperature_8_t temperature)
+{
+  (void) sensor_idx;
+
+  if (SL_BTMESH_SENSOR_CLIENT_DATA_VALID == status) {
+    app_log("BT mesh Sensor Temperature (from 0x%04x): %3d.%1d °C\r\n",
+            address,
+            INT_TEMP(temperature),
+            FRAC_TEMP(temperature));
+  } else if (SL_BTMESH_SENSOR_CLIENT_DATA_UNKNOWN == status) {
+    app_log("BT mesh Sensor Temperature (from 0x%04x): UNKNOWN\r\n",
+            address);
+  } else {
+    app_log("BT mesh Sensor Temperature (from 0x%04x): NOT AVAILABLE\r\n",
+            address);
+  }
+  (void)address;
+  (void)temperature;
+}
+
+/***************************************************************************//**
+ * Timer Callbacks
+ ******************************************************************************/
+static void app_sensor_data_timer_cb(sl_simple_timer_t *handle,
+                                     void *data)
+{
+  (void)data;
+  (void)handle;
+}
+
+static void app_update_registered_devices_timer_cb(sl_simple_timer_t *handle,
+                                                   void *data)
+{
+  (void)data;
+  (void)handle;
+}
+
+static void app_led_blinking_timer_cb(sl_simple_timer_t *handle,
+                                      void *data)
+{
+  (void)data;
+  (void)handle;
+  if (!init_done) {
+    // Toggle LEDs
+    sl_led_led0.toggle(sl_led_led0.context);
+#ifndef SINGLE_LED
+    sl_led_led1.toggle(sl_led_led1.context);
+#endif // SINGLE_LED
+  }
+}
+
+/***************************************************************************//**
+ * Provisioning Decorator Callbacks
+ ******************************************************************************/
+// Called when the Provisioning starts
+void sl_btmesh_on_node_provisioning_started(uint16_t result)
+{
+
+  sl_status_t sc = sl_simple_timer_start(&app_led_blinking_timer,
+                                         APP_LED_BLINKING_TIMEOUT,
+                                         app_led_blinking_timer_cb,
+                                         NO_CALLBACK_DATA,
+                                         true);
+
+  app_assert_status_f(sc, "Failed to start periodic timer\r\n");
+
+  app_show_btmesh_node_provisioning_started(result);
+}
+
+// Called when the Provisioning finishes successfully
+void sl_btmesh_on_node_provisioned(uint16_t address,
+                                   uint32_t iv_index)
+{
+  sl_status_t sc = sl_simple_timer_stop(&app_led_blinking_timer);
+  app_assert_status_f(sc, "Failed to stop periodic timer\r\n");
+  // Turn off LED
+  init_done = true;
+  sl_led_led0.turn_off(sl_led_led0.context);
+#ifndef SINGLE_LED
+  sl_led_led1.turn_off(sl_led_led1.context);
+#endif // SINGLE_LED
+
+  app_show_btmesh_node_provisioned(address, iv_index);
+}
+
+
+/***************************************************************************//**
+ * This function is called by mic_driver each time BRICK_SIZE_SAMPLES from the
+ * microphone are ready.
+ * Call Sensory recognition processing function to look for wake up word.
+ ******************************************************************************/
+static void on_mic_data(const void *buffer, uint32_t frames)
+{
+  (void)frames;
+  uint32_t tick_start = sl_sleeptimer_get_tick_count();
+  // Feed mic samples into Sensory library.
+  SensoryProcessBrick((void*)buffer, process_brick_callback);
+
+#if defined(DISPLAY_INFERENCE_TIME)
+  uint32_t tick_end = sl_sleeptimer_get_tick_count();
+  uint32_t ticks = tick_end - tick_start;
+
+  avg_processing_ticks =
+    (ticks + (processing_step - 1) * avg_processing_ticks) / processing_step;
+  processing_step++;
+  uint32_t fifteen_milliseconds_ticks = sl_sleeptimer_ms_to_tick(15);
+  uint32_t percentage_time_spent_on_inference = (100 * avg_processing_ticks) / fifteen_milliseconds_ticks;
+//  printf("Average Inference Time [%% of 15ms]: %lu  \r", percentage_time_spent_on_inference);
+#else
+  (void)tick_start;
+#endif // defined(DISPLAY_INFERENCE_TIME)
+}
+
+/***************************************************************************//**
+ * Timer callback which turns off LEDs.
+ ******************************************************************************/
+static void turn_off_leds(sl_sleeptimer_timer_handle_t *handle, void* data)
+{
+  // Avoid warnings from unused args.
+  (void)handle;
+  (void)data;
+
+  sl_led_turn_off(&GREEN_LED);
+  sl_led_turn_off(&RED_LED);
+}
+
+/***************************************************************************//**
+ * Restarts the timer that turns off LEDs.
+ ******************************************************************************/
+static void schedule_timer_to_turn_off_leds(uint32_t timeout_ms)
+{
+  uint32_t timeout_ticks = sl_sleeptimer_ms_to_tick(timeout_ms);
+  sl_sleeptimer_restart_timer(&timer, timeout_ticks, turn_off_leds, NULL, 0, 0);
+}
+
+/***************************************************************************//**
+ * Get the string label associated with the given model output index.
+ ******************************************************************************/
+static const char* wakeword_label(uint16_t word_id)
+{
+  if (word_id < (uint16_t)WAKEWORD_PHRASE_COUNT) {
+    return wakeword_phrases[word_id];
+  }
+  return "Unknown";
+}
+
+/***************************************************************************//**
+ * Check whether the given wakeword should enable the red LED.
+ ******************************************************************************/
+static bool wakeword_should_enable_red_led(uint16_t word_id)
+{
+  return word_id == 1 || word_id == 3;
+}
+
+/***************************************************************************//**
+ * Check whether the given wakeword should enable the green LED.
+ ******************************************************************************/
+static bool wakeword_should_enable_green_led(uint16_t word_id)
+{
+  return word_id == 1 || word_id == 4;
+}
+
+/***************************************************************************//**
+ * Check whether the LED lights should time out automatically.
+ * This is only necessary if the model does not have an 'off' command,
+ * i.e. it's trained to detect only one phrase.
+ ******************************************************************************/
+static bool should_have_timeout_for_leds()
+{
+  // There are two wakeword phrases that are always present: "SILENCE" and "nota".
+  // so WAKEWORD_PHRASE_COUNT being 3 indicates there is only one actively spoken
+  // phrase the model is trained to detect
+  return WAKEWORD_PHRASE_COUNT == 3;
+}
+
+/***************************************************************************//**
+ * Recognition callback, invoked whenever we run inference.
+ ******************************************************************************/
+static void process_brick_callback(recognition_context_t* context)
+{
+  if (context->error == ERR_NOT_FINISHED) {
+    return;
+  } else if (context->error != ERR_OK) {
+    printf("Error: %d\n", context->error);
+    return;
+  }
+
+  const char* label = wakeword_label(context->wordID);
+  bool red_led_on = wakeword_should_enable_red_led(context->wordID);
+  bool green_led_on = wakeword_should_enable_green_led(context->wordID);
+
+  int8_t confidence_pct = (int8_t)(0.0030517578125 * context->nnpqScore); // (100 * (1/32768))
+  printf("[k=%6lu] Recognized %-13s (id=%d) with confidence %d%%\n", (long unsigned int)context->timestep, label, context->wordID, confidence_pct);
+  // The LED timer timeout for the model must be specified in model/<name>/command.h
+  if (should_have_timeout_for_leds()) {
+    schedule_timer_to_turn_off_leds(1500);
+  }
+
+  if (red_led_on) {
+    sl_led_turn_on(&RED_LED);
+      TagBoard_Node_1_Toggle();
+  } else {
+    sl_led_turn_off(&RED_LED);
+//      TagBoard_Node_1_Toggle();
+  }
+
+  if (green_led_on) {
+    sl_led_turn_on(&GREEN_LED);
+      TagBoard_Node_2_Toggle();
+  } else {
+    sl_led_turn_off(&GREEN_LED);
+//      TagBoard_Node_2_Toggle();
+  }
+}

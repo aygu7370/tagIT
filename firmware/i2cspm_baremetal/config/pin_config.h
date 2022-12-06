@@ -93,13 +93,13 @@
 // [USART0]$
 
 // $[I2C1]
-// I2C1 SCL on PC05
+// I2C1 SCL on PC07
 #define I2C1_SCL_PORT                            gpioPortC
-#define I2C1_SCL_PIN                             5
+#define I2C1_SCL_PIN                             7
 
-// I2C1 SDA on PC07
+// I2C1 SDA on PC08
 #define I2C1_SDA_PORT                            gpioPortC
-#define I2C1_SDA_PIN                             7
+#define I2C1_SDA_PIN                             8
 
 // [I2C1]$
 

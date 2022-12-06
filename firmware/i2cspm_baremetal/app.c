@@ -24,9 +24,11 @@
 void app_init(void)
 {
 //  i2cspm_app_init();
-  I2C_AccelInit();
+//  I2C_AccelInit();
+  getTagItInit();
   GPIO_InitForInterrupt();
   I2C_GetDeviceID();
+
 }
 
 /***************************************************************************//**
@@ -36,4 +38,5 @@ void app_process_action(void)
 {
 //  i2cspm_app_process_action();
   I2C_ResetAccelInterrupts();
+  getTagItSensorData();
 }

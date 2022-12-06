@@ -56,6 +56,8 @@
 
 #include "sl_btmesh_factory_reset.h"
 #include "sl_btmesh_provisioning_decorator.h"
+#include "sl_btmesh_model_specification_defs.h"
+#include "sl_btmesh_generic_model_capi_types.h"
 
 #include "TagBoard.h"
 
@@ -398,6 +400,16 @@ void sl_btmesh_on_node_provisioning_started(uint16_t result)
   app_show_btmesh_node_provisioning_started(result);
 }
 
+static void app_sensor_data_timer_cb(sl_simple_timer_t *handle,
+                                     void *data)
+{
+  struct mesh_generic_state sensValue;
+  sensValue.kind = mesh_generic_state_level;
+  sensValue.level.level = 200;
+  sl_status_t sc = mesh_lib_generic_server_update(MESH_GENERIC_LEVEL_SERVER_MODEL_ID, 0, &sensValue, &sensValue, 0);
+  app_log("server_update Send message status: %X\r\n", sc);
+}
+
 // Called when the Provisioning finishes successfully
 void sl_btmesh_on_node_provisioned(uint16_t address,
                                    uint32_t iv_index)
@@ -413,5 +425,11 @@ void sl_btmesh_on_node_provisioned(uint16_t address,
   // Change LEDs to buttons in case of shared pin
 
   app_show_btmesh_node_provisioned(address, iv_index);
+
+//  sc = sl_simple_timer_start(&app_sensor_data_timer,
+//                                           APP_LED_BLINKING_TIMEOUT,
+//                                           app_sensor_data_timer_cb,
+//                                           NO_CALLBACK_DATA,
+//                                           true);
 }
 

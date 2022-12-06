@@ -1,0 +1,10 @@
+#CRC Codes for initially generated config files -- do not modify!
+btl_core_cfg.h=-1299284208
+btl_debug_cfg.h=1736398931
+emlib_core_debug_config.h=-551881347
+mbedtls_config.h=-131196312
+psa_crypto_config.h=2060553942
+sl_device_init_dcdc_config.h=-1134833866
+sl_device_init_emu_config.h=622680131
+sl_device_init_hfxo_config.h=-478560858
+sl_memory_config.h=687128566

@@ -51,6 +51,12 @@ const uint8_t __mesh_dcd[] = {
       U16TOA(0x1102), /* Sensor Client */
       U16TOA(0x1100), /* Sensor Server */
       U16TOA(0x1101), /* Sensor Setup Server */
+  /* Element */
+    U16TOA(0x0000), /* Location */
+    0x01, /* Number of SIG Models = 1 */
+    0x00, /* Number of Vendor Models = 0 */
+    /* SIG Models */
+      U16TOA(0x1002), /* Generic Level Server */
 };
 
 const size_t __mesh_dcd_len = sizeof(__mesh_dcd);

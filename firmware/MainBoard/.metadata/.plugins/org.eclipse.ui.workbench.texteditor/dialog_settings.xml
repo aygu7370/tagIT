@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="generic_server_update"/>
+		<item key="selection" value="sl_btmesh_evt_generic_server_client_request"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="generic_server_update"/>
-			<item value="sl_led_led0"/>
-			<item value="led"/>
+			<item value="sl_btmesh_generic_server_respond"/>
+			<item value="sl_btmesh_evt_generic_server_client_request"/>
+			<item value="generic_server"/>
+			<item value="generic_client_get"/>
+			<item value="client_get"/>
+			<item value="publish"/>
+			<item value="find_reg"/>
+			<item value="_publish"/>
+			<item value="server_addr"/>
+			<item value="DMADRV_Init"/>
 			<item value="init"/>
-			<item value="lightbulb_state"/>
-			<item value="lc_onoff_update"/>
-			<item value="lc_onoff_response"/>
-			<item value="lc_property_state"/>
-			<item value="lc_onoff_update_and_publish"/>
-			<item value="lc_onoff_change"/>
-			<item value="delayed_lc_onoff_request"/>
-			<item value="generic_server_register_handler"/>
-			<item value="mesh_lib_generic_server_register_handler"/>
-			<item value="init_models"/>
-			<item value="lightness_request"/>
+			<item value="sample_count"/>
+			<item value="dma_complete"/>
+			<item value="buffer_ready_callback"/>
+			<item value="on_mic_data"/>
 		</list>
 		<list key="replacehistory">
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
-		<item key="DIALOG_X_ORIGIN" value="5260"/>
-		<item key="DIALOG_Y_ORIGIN" value="1049"/>
+		<item key="DIALOG_X_ORIGIN" value="1762"/>
+		<item key="DIALOG_Y_ORIGIN" value="315"/>
 		<item key="DIALOG_WIDTH" value="511"/>
 		<item key="DIALOG_HEIGHT" value="523"/>
 		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
