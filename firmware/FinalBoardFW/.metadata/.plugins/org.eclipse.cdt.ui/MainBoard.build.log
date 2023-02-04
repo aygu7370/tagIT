@@ -1,0 +1,6 @@
+16:56:45 **** Incremental Build of configuration GNU ARM v10.3.1 - Default for project MainBoard ****
+make -j8 all 
+make: Nothing to be done for 'all'.
+
+16:56:46 Build Finished. 0 errors, 0 warnings. (took 777ms)
+

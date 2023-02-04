@@ -25,12 +25,14 @@ gecko_sdk_4.1.1/app/bluetooth/common/btmesh_provisioning_decorator \
 gecko_sdk_4.1.1/app/bluetooth/common/btmesh_sensor_people_count \
 gecko_sdk_4.1.1/app/bluetooth/common/btmesh_sensor_server \
 gecko_sdk_4.1.1/app/bluetooth/common/in_place_ota_dfu \
+gecko_sdk_4.1.1/app/bluetooth/common/sensor_rht \
 gecko_sdk_4.1.1/app/bluetooth/common/sensor_select \
 gecko_sdk_4.1.1/app/bluetooth/common/simple_timer \
 gecko_sdk_4.1.1/app/common/util/app_button_press \
 gecko_sdk_4.1.1/app/common/util/app_log \
 gecko_sdk_4.1.1/hardware/board/src \
 gecko_sdk_4.1.1/hardware/driver/mx25_flash_shutdown/src/sl_mx25_flash_shutdown_eusart \
+gecko_sdk_4.1.1/hardware/driver/si70xx/src \
 gecko_sdk_4.1.1/platform/Device/SiliconLabs/EFR32MG24/Source \
 gecko_sdk_4.1.1/platform/bootloader/api \
 gecko_sdk_4.1.1/platform/bootloader/app_properties \

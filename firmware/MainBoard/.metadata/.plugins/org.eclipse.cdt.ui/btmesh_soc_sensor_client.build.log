@@ -1,0 +1,7 @@
+22:32:15 **** Clean-only build of configuration GNU ARM v10.3.1 - Default for project btmesh_soc_sensor_client ****
+make -j8 clean 
+rm -rf btmesh_soc_sensor_client.axf
+ 
+
+22:32:34 Build Finished. 0 errors, 0 warnings. (took 18s.999ms)
+

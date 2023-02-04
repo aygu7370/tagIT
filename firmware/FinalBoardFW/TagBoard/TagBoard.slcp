@@ -1,0 +1,83 @@
+# Silicon Labs Project Configuration Tools: slcp, v0, Component selection file.
+project_name: TagBoard
+label: TagBoard
+description: |
+  Demonstrates the bare minimum needed for a Bluetooth Mesh C application. The application starts Unprovisioned Device Beaconing after booting, and then waits to be provisioned.
+category: Bluetooth Mesh Examples
+filter:
+- name: Device Type
+  value: [SoC]
+- name: Project Difficulty
+  value: [Beginner]
+- name: Wireless Technology
+  value: [Bluetooth Mesh]
+package: Btmesh
+quality: production
+readme:
+- {path: readme.md}
+source:
+- {path: app.c}
+- {path: main.c}
+tag: ['hardware:rf:band:2400', 'hardware:device:flash:512', 'hardware:device:ram:32']
+include:
+- path: ''
+  file_list:
+  - {path: app.h}
+sdk: {id: gecko_sdk, version: 4.1.1}
+toolchain_settings: []
+component:
+- {id: led}
+- {id: btmesh_feature_generic_client}
+- {id: btmesh_factory_reset}
+- {id: brd2601b}
+- {id: btmesh_event_log}
+- {id: btmesh_feature_node}
+- {id: in_place_ota_dfu}
+- {id: mpu}
+- instance: [buzzer]
+  id: pwm
+- instance: [led0, led1]
+  id: simple_led
+- {id: app_btmesh_util}
+- instance: [vcom]
+  id: iostream_eusart
+- {id: btmesh_feature_gatt_prov_bearer}
+- {id: rail_util_pti}
+- {id: btmesh_feature_relay}
+- {id: btmesh_proxy}
+- {id: btmesh_feature_sensor_server}
+- {id: btmesh_feature_generic_server}
+- {id: app_button_press}
+- {id: btmesh_provisioning_decorator}
+- {id: btmesh_sensor_server}
+- {id: btmesh_stack}
+- {id: si70xx_driver}
+- {id: sensor_select}
+- {id: btmesh_sensor_people_count}
+- {id: button}
+- {id: bootloader_interface}
+- {id: app_assert}
+- {id: sensor_rht}
+- {id: btmesh_generic_base}
+- {id: EFR32MG24B310F1536IM48}
+other_file:
+- {path: create_bl_files.bat}
+- {path: create_bl_files.sh}
+- {path: readme_img0.png}
+- {path: readme_img1.png}
+- {path: readme_img2.png}
+- {path: readme_img3.png}
+- {path: readme_img4.png}
+- {path: readme_img5.png}
+configuration:
+- {name: SL_HEAP_SIZE, value: '0x4000'}
+- condition: [psa_crypto]
+  name: SL_PSA_KEY_USER_SLOT_COUNT
+  value: '0'
+- {name: SL_STACK_SIZE, value: '0x1200'}
+ui_hints:
+  highlight:
+  - {path: readme.md, focus: true}
+  - {path: config/btconf/gatt_configuration.btconf}
+  - {path: config/btmeshconf/dcd_config.btmeshconf}
+

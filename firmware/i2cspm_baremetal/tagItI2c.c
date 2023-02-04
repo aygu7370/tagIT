@@ -7,6 +7,8 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "tagItI2c.h"
 #include "sl_sleeptimer.h"
 #include "sl_simple_led.h"
@@ -17,6 +19,126 @@
 #include "em_emu.h"
 #include "em_chip.h"
 #include "system_efr32mg24.h"
+
+/* COMMANDS */
+#define SI1145_PARAM_QUERY 0x80
+#define SI1145_PARAM_SET 0xA0
+#define SI1145_NOP 0x0
+#define SI1145_RESET 0x01
+#define SI1145_BUSADDR 0x02
+#define SI1145_PS_FORCE 0x05
+#define SI1145_ALS_FORCE 0x06
+#define SI1145_PSALS_FORCE 0x07
+#define SI1145_PS_PAUSE 0x09
+#define SI1145_ALS_PAUSE 0x0A
+#define SI1145_PSALS_PAUSE 0xB
+#define SI1145_PS_AUTO 0x0D
+#define SI1145_ALS_AUTO 0x0E
+#define SI1145_PSALS_AUTO 0x0F
+#define SI1145_GET_CAL 0x12
+
+/* Parameters */
+#define SI1145_PARAM_I2CADDR 0x00
+#define SI1145_PARAM_CHLIST 0x01
+#define SI1145_PARAM_CHLIST_ENUV 0x80
+#define SI1145_PARAM_CHLIST_ENAUX 0x40
+#define SI1145_PARAM_CHLIST_ENALSIR 0x20
+#define SI1145_PARAM_CHLIST_ENALSVIS 0x10
+#define SI1145_PARAM_CHLIST_ENPS1 0x01
+#define SI1145_PARAM_CHLIST_ENPS2 0x02
+#define SI1145_PARAM_CHLIST_ENPS3 0x04
+
+#define SI1145_PARAM_PSLED12SEL 0x02
+#define SI1145_PARAM_PSLED12SEL_PS2NONE 0x00
+#define SI1145_PARAM_PSLED12SEL_PS2LED1 0x10
+#define SI1145_PARAM_PSLED12SEL_PS2LED2 0x20
+#define SI1145_PARAM_PSLED12SEL_PS2LED3 0x40
+#define SI1145_PARAM_PSLED12SEL_PS1NONE 0x00
+#define SI1145_PARAM_PSLED12SEL_PS1LED1 0x01
+#define SI1145_PARAM_PSLED12SEL_PS1LED2 0x02
+#define SI1145_PARAM_PSLED12SEL_PS1LED3 0x04
+
+#define SI1145_PARAM_PSLED3SEL 0x03
+#define SI1145_PARAM_PSENCODE 0x05
+#define SI1145_PARAM_ALSENCODE 0x06
+
+#define SI1145_PARAM_PS1ADCMUX 0x07
+#define SI1145_PARAM_PS2ADCMUX 0x08
+#define SI1145_PARAM_PS3ADCMUX 0x09
+#define SI1145_PARAM_PSADCOUNTER 0x0A
+#define SI1145_PARAM_PSADCGAIN 0x0B
+#define SI1145_PARAM_PSADCMISC 0x0C
+#define SI1145_PARAM_PSADCMISC_RANGE 0x20
+#define SI1145_PARAM_PSADCMISC_PSMODE 0x04
+
+#define SI1145_PARAM_ALSIRADCMUX 0x0E
+#define SI1145_PARAM_AUXADCMUX 0x0F
+
+#define SI1145_PARAM_ALSVISADCOUNTER 0x10
+#define SI1145_PARAM_ALSVISADCGAIN 0x11
+#define SI1145_PARAM_ALSVISADCMISC 0x12
+#define SI1145_PARAM_ALSVISADCMISC_VISRANGE 0x20
+
+#define SI1145_PARAM_ALSIRADCOUNTER 0x1D
+#define SI1145_PARAM_ALSIRADCGAIN 0x1E
+#define SI1145_PARAM_ALSIRADCMISC 0x1F
+#define SI1145_PARAM_ALSIRADCMISC_RANGE 0x20
+
+#define SI1145_PARAM_ADCCOUNTER_511CLK 0x70
+
+#define SI1145_PARAM_ADCMUX_SMALLIR 0x00
+#define SI1145_PARAM_ADCMUX_LARGEIR 0x03
+
+/* REGISTERS */
+#define SI1145_REG_PARTID 0x00
+#define SI1145_REG_REVID 0x01
+#define SI1145_REG_SEQID 0x02
+
+#define SI1145_REG_INTCFG 0x03
+#define SI1145_REG_INTCFG_INTOE 0x01
+#define SI1145_REG_INTCFG_INTMODE 0x02
+
+#define SI1145_REG_IRQEN 0x04
+#define SI1145_REG_IRQEN_ALSEVERYSAMPLE 0x01
+#define SI1145_REG_IRQEN_PS1EVERYSAMPLE 0x04
+#define SI1145_REG_IRQEN_PS2EVERYSAMPLE 0x08
+#define SI1145_REG_IRQEN_PS3EVERYSAMPLE 0x10
+
+#define SI1145_REG_IRQMODE1 0x05
+#define SI1145_REG_IRQMODE2 0x06
+
+#define SI1145_REG_HWKEY 0x07
+#define SI1145_REG_MEASRATE0 0x08
+#define SI1145_REG_MEASRATE1 0x09
+#define SI1145_REG_PSRATE 0x0A
+#define SI1145_REG_PSLED21 0x0F
+#define SI1145_REG_PSLED3 0x10
+#define SI1145_REG_UCOEFF0 0x13
+#define SI1145_REG_UCOEFF1 0x14
+#define SI1145_REG_UCOEFF2 0x15
+#define SI1145_REG_UCOEFF3 0x16
+#define SI1145_REG_PARAMWR 0x17
+#define SI1145_REG_COMMAND 0x18
+#define SI1145_REG_RESPONSE 0x20
+#define SI1145_REG_IRQSTAT 0x21
+#define SI1145_REG_IRQSTAT_ALS 0x01
+
+#define SI1145_REG_ALSVISDATA0 0x22
+#define SI1145_REG_ALSVISDATA1 0x23
+#define SI1145_REG_ALSIRDATA0 0x24
+#define SI1145_REG_ALSIRDATA1 0x25
+#define SI1145_REG_PS1DATA0 0x26
+#define SI1145_REG_PS1DATA1 0x27
+#define SI1145_REG_PS2DATA0 0x28
+#define SI1145_REG_PS2DATA1 0x29
+#define SI1145_REG_PS3DATA0 0x2A
+#define SI1145_REG_PS3DATA1 0x2B
+#define SI1145_REG_UVINDEX0 0x2C
+#define SI1145_REG_UVINDEX1 0x2D
+#define SI1145_REG_PARAMRD 0x2E
+#define SI1145_REG_CHIPSTAT 0x30
+
+#define SI1145_ADDR 0x60
 
 #define ADXL343_ADDRESS 0x53
 #define ADXL343_DEVICE_ID 0x00
@@ -31,7 +153,18 @@
 #define ADXL343_Z_AXIS_DATA_0 0x36
 #define ADXL343_Z_AXIS_DATA_1 0x37
 
+#define GESTURE_THRESHOLD     450
+
 static volatile uint8_t gEnableInterruptRegisterRead = 0;
+
+int16_t xVal = 0;
+int16_t yVal = 0;
+int16_t zVal = 0;
+int16_t xData[100];
+int16_t yData[100];
+int16_t zData[100];
+int xAvg, yAvg, zAvg = 0;
+int16_t vect = 0;
 
 I2C_TransferReturn_TypeDef
 I2C_transaction (I2C_TypeDef *i2c, uint32_t address, uint16_t flag,
@@ -85,7 +218,7 @@ I2C_TransferReturn_TypeDef
 I2C_GetAccelData (uint16_t flag, uint8_t *writeCmd, uint32_t writeLen,
                   uint8_t *readCmd, uint32_t readLen)
 {
-  I2C_TransferReturn_TypeDef ret;
+  I2C_TransferReturn_TypeDef ret = i2cTransferDone;
 
   uint32_t timeout = 300;
   while (timeout--)
@@ -114,11 +247,45 @@ I2C_GetAccelData (uint16_t flag, uint8_t *writeCmd, uint32_t writeLen,
   return ret;
 }
 
+I2C_TransferReturn_TypeDef
+I2C_GetAmbientData (uint16_t flag, uint8_t *writeCmd, uint32_t writeLen,
+                  uint8_t *readCmd, uint32_t readLen)
+{
+  I2C_TransferReturn_TypeDef ret = i2cTransferDone;
+
+  uint32_t timeout = 300;
+  while (timeout--)
+    {
+      ret = I2C_transaction (I2C1, SI1145_ADDR, flag, writeCmd, writeLen,
+                             readCmd, readLen);
+      if (ret == i2cTransferDone)
+        {
+          break;
+        }
+      else if (ret < i2cTransferDone)
+        {
+          break;
+        }
+      else
+        {
+          continue;
+        }
+    }
+
+  if ((timeout > 0) && (ret < i2cTransferDone))
+    {
+      printf ("Erorr occured while reading.\r\n");
+    }
+
+  return ret;
+}
+
+
 void
 GPIO_ODD_IRQHandler (void)
 {
-  uint32_t gpioInt;
-  GPIO_IntClear (1<<7);
+//  uint32_t gpioInt;
+  GPIO_IntClear (1<<5);
   /* Read and clear even GPIO interrupt */
 //  gpioInt = GPIO_IntGet ();
   GPIO_PinOutToggle (gpioPortB, 2);
@@ -129,12 +296,178 @@ GPIO_ODD_IRQHandler (void)
 void
 GPIO_InitForInterrupt ()
 {
-  GPIO_PinModeSet (gpioPortA, 7, gpioModeInput, 0);
-  GPIO_ExtIntConfig (gpioPortA, 7, 7, true, false, true);
+  GPIO_PinModeSet (gpioPortA, 5, gpioModeInput, 0);
+  GPIO_ExtIntConfig (gpioPortA, 5, 5, true, false, true);
   NVIC_ClearPendingIRQ (GPIO_ODD_IRQn);
   NVIC_EnableIRQ (GPIO_ODD_IRQn);
 
   GPIO_PinModeSet (gpioPortB, 2, gpioModePushPull, 0);
+}
+
+void writeParamToAls(uint8_t command, uint8_t value)
+{
+  uint8_t configure[2];
+  I2C_TransferReturn_TypeDef ret;
+  configure[0] = SI1145_REG_PARAMWR;
+  configure[1] = value;
+
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+  configure[0] = SI1145_REG_COMMAND;
+  configure[1] = command | SI1145_PARAM_SET;
+
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+}
+
+void I2C_ALSInit()
+{
+  uint8_t cmd = SI1145_REG_PARTID; // Bit 3 specifies the measure command
+  uint8_t readData = 0;
+    I2C_TransferReturn_TypeDef ret;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE_READ, &cmd, sizeof(cmd), &readData, sizeof(readData));
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+    printf("Product ID: 0x%x\r\n", readData);
+
+  uint8_t configure[2];
+
+  configure[0] = SI1145_REG_UCOEFF0;
+  configure[1] = 0x29;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+  configure[0] = SI1145_REG_UCOEFF1;
+  configure[1] = 0x89;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+  configure[0] = SI1145_REG_UCOEFF2;
+  configure[1] = 0x02;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+  configure[0] = SI1145_REG_UCOEFF3;
+  configure[1] = 0x00;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+  // enable UV sensor
+  writeParamToAls(SI1145_PARAM_CHLIST,
+             SI1145_PARAM_CHLIST_ENUV | SI1145_PARAM_CHLIST_ENALSIR |
+                 SI1145_PARAM_CHLIST_ENALSVIS);
+
+  writeParamToAls(SI1145_PARAM_ALSIRADCMUX, SI1145_PARAM_ADCMUX_SMALLIR);
+  // fastest clocks, clock div 1
+  writeParamToAls(SI1145_PARAM_ALSIRADCGAIN, 0);
+  // take 511 clocks to measure
+  writeParamToAls(SI1145_PARAM_ALSIRADCOUNTER, SI1145_PARAM_ADCCOUNTER_511CLK);
+  // in high range mode
+  writeParamToAls(SI1145_PARAM_ALSIRADCMISC, SI1145_PARAM_ALSIRADCMISC_RANGE);
+
+  // fastest clocks, clock div 1
+  writeParamToAls(SI1145_PARAM_ALSVISADCGAIN, 0);
+  // take 511 clocks to measure
+  writeParamToAls(SI1145_PARAM_ALSVISADCOUNTER, SI1145_PARAM_ADCCOUNTER_511CLK);
+  // in high range mode (not normal signal)
+  writeParamToAls(SI1145_PARAM_ALSVISADCMISC, SI1145_PARAM_ALSVISADCMISC_VISRANGE);
+
+
+  configure[0] = SI1145_REG_MEASRATE0;
+  configure[1] = 0x00;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+
+  configure[0] = SI1145_REG_MEASRATE1;
+  configure[1] = 0x00;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+}
+
+uint16_t I2C_GetALSData()
+{
+  uint8_t cmd = SI1145_REG_UVINDEX0; // Bit 3 specifies the measure command
+  uint8_t uv[2], als_vis[2], als_ir[2];
+    I2C_TransferReturn_TypeDef ret;
+
+    uint8_t configure[2];
+    configure[0] = SI1145_REG_COMMAND;
+    configure[1] = SI1145_ALS_FORCE;
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE,   configure, sizeof(configure), NULL, 0);
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+    ret = I2C_GetAmbientData (I2C_FLAG_WRITE_READ, &cmd, sizeof(cmd), uv, sizeof(uv));
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+    // printf("UV Index: %d\r\n", (((uint16_t)uv[0]) | ((uint16_t)uv[1] << 8)));
+
+
+  cmd = SI1145_REG_ALSVISDATA0;
+  ret = I2C_GetAmbientData (I2C_FLAG_WRITE_READ, &cmd, sizeof(cmd), als_vis, sizeof(als_vis));
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+    // printf("ALS Visible: %d\r\n", (((uint16_t)als_vis[0]) | ((uint16_t)als_vis[1] << 8)));
+
+
+  cmd = SI1145_REG_ALSIRDATA0;
+  ret = I2C_GetAmbientData (I2C_FLAG_WRITE_READ, &cmd, sizeof(cmd), als_ir, sizeof(als_ir));
+    if (ret < i2cTransferDone)
+    {
+      // oops error condition
+      printf ("Status %d: %d\r\n", __LINE__, ret);
+    }
+
+
+    printf("UV[%d] VIS[%d] IR[%d]\r\n", (((uint16_t)uv[0]) | ((uint16_t)uv[1] << 8)), (((uint16_t)als_vis[0]) | ((uint16_t)als_vis[1] << 8)), (((uint16_t)als_ir[0]) | ((uint16_t)als_ir[1] << 8)));
+
+    return (((uint16_t)als_vis[0]) | ((uint16_t)als_vis[1] << 8));
 }
 
 void
@@ -202,7 +535,6 @@ I2C_AccelInit ()
 void
 I2C_ResetAccelInterrupts ()
 {
-
   if (gEnableInterruptRegisterRead)
     {
       uint8_t cmd = 0x00;
@@ -224,11 +556,8 @@ I2C_ResetAccelInterrupts ()
 void
 I2C_GetDeviceID ()
 {
-
   uint8_t cmd = ADXL343_DEVICE_ID;
   I2C_TransferReturn_TypeDef ret;
-  uint8_t readData = 0;
-  cmd = 0x30;
   uint8_t value;
   ret = I2C_GetAccelData (I2C_FLAG_WRITE_READ, &cmd, 1, &value, 1);
   if (ret < i2cTransferDone)
@@ -237,5 +566,96 @@ I2C_GetDeviceID ()
       printf ("Status %d: %d\r\n", __LINE__, ret);
     }
 
-  printf ("Dev ID: %d\r\n", readData);
+  printf ("Dev ID: %d\r\n", value);
+}
+
+
+void
+I2C_GetAcclData ()
+{
+  uint8_t cmd = 0;
+  I2C_TransferReturn_TypeDef ret;
+  cmd = ADXL343_X_AXIS_DATA_0;
+  uint8_t value[6];
+  ret = I2C_GetAccelData (I2C_FLAG_WRITE_READ, &cmd, sizeof(cmd), value, sizeof(value));
+  if (ret < i2cTransferDone)
+  {
+    // oops error condition
+    printf ("Status %d: %d\r\n", __LINE__, ret);
+  }
+
+  xVal = (((uint16_t)value[0]) | ((uint16_t)value[1] << 8));
+  yVal = (((uint16_t)value[2]) | ((uint16_t)value[3] << 8));
+  zVal = (((uint16_t)value[4]) | ((uint16_t)value[5] << 8));
+
+//  printf ("X[%d] Y[%d] Z[%d]\r\n", xVal, yVal, zVal);
+}
+
+void calibrate(int16_t *xval, int16_t *yval, int16_t *zval, int *xavg, int *yavg, int *zavg){
+  int sum = 0, sum1 = 0, sum2 = 0;
+  for(int i = 0; i<100; i++){
+    I2C_GetAcclData();
+    xval[i] = xVal;
+    sum = xval[i] + sum;
+
+    yval[i] = yVal;
+    sum1 = yval[i] + sum1;
+
+    zval[i] = zVal;
+    sum2 = zval[i] + sum2;
+  }
+  *xavg = sum/100;
+
+  *yavg = sum1/100;
+
+  *zavg = sum2/100;
+}
+
+bool detect_gesture(){
+  I2C_GetAcclData();
+
+  vect = sqrt(((xVal - xAvg) * (xVal - xAvg)) + ((yVal - yAvg) *
+            (yVal - yAvg)) + ((zVal - zAvg) * (zVal - zAvg)));
+//  printf("R[%d]\r\n", vect);
+
+//  delay(100);
+  if(vect > GESTURE_THRESHOLD){
+//    count++;
+//    step_flag = true;
+      printf("gest detect\r\n");
+      return true;
+  }
+  else{
+      return false;
+  }
+//  else if((total_avg[i] > GESTURE_THRESHOLD) && (step_flag == true)){
+//    //Don't count
+//    __asm volatile ("nop");
+//  }
+//
+//  if((((total_avg[i] - total_avg[i-1]) > STEP_CHANGE_THRESHOLD)||
+//    ((total_avg[i-1] - total_avg[i]) > STEP_CHANGE_THRESHOLD)) && (step_flag == true)){
+//    step_flag = false;
+//  }
+}
+
+void getTagItInit()
+{
+//  I2C_AccelInit();
+//  I2C_GetDeviceID();
+  I2C_ALSInit();
+
+//  calibrate(xData, yData, zData, &xAvg, &yAvg, &zAvg);
+}
+
+void getTagItSensorData()
+{
+//  I2C_GetAcclData();
+  if(I2C_GetALSData() >= 290){
+      printf("light\r\n");
+  }
+  else{
+      printf("dark\r\n");
+  }
+//  detect_gesture();
 }

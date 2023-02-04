@@ -27,10 +27,12 @@ sdk: {id: gecko_sdk, version: 4.1.1}
 toolchain_settings: []
 component:
 - {id: status_string}
+- {id: stdio}
 - {id: led}
 - {id: btmesh_feature_generic_client}
 - {id: btmesh_factory_reset}
 - {id: brd2601b}
+- {id: rail_util_dma}
 - {id: btmesh_sensor_client}
 - {id: btmesh_event_log}
 - {id: btmesh_feature_node}
@@ -41,6 +43,8 @@ component:
 - instance: [led0, led1]
   id: simple_led
 - {id: app_btmesh_util}
+- instance: [vcom]
+  id: iostream_eusart
 - {id: btmesh_feature_gatt_prov_bearer}
 - {id: rail_util_pti}
 - {id: btmesh_feature_relay}
@@ -50,10 +54,12 @@ component:
 - {id: app_button_press}
 - {id: app_log}
 - instance: [vcom]
-  id: iostream_usart
+  id: uartdrv_eusart
 - {id: btmesh_provisioning_decorator}
 - {id: btmesh_stack}
+- {id: mic_i2s_driver}
 - {id: btmesh_sensor_people_count}
+- {id: mic_driver}
 - {id: bootloader_interface}
 - {id: app_assert}
 - {id: btmesh_generic_base}

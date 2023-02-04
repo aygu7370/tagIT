@@ -30,6 +30,7 @@ gecko_sdk_4.1.1/app/bluetooth/common/simple_timer \
 gecko_sdk_4.1.1/app/common/util/app_button_press \
 gecko_sdk_4.1.1/app/common/util/app_log \
 gecko_sdk_4.1.1/hardware/board/src \
+gecko_sdk_4.1.1/hardware/driver/mic/src \
 gecko_sdk_4.1.1/hardware/driver/mx25_flash_shutdown/src/sl_mx25_flash_shutdown_eusart \
 gecko_sdk_4.1.1/platform/Device/SiliconLabs/EFR32MG24/Source \
 gecko_sdk_4.1.1/platform/bootloader/api \
@@ -38,11 +39,14 @@ gecko_sdk_4.1.1/platform/common/src \
 gecko_sdk_4.1.1/platform/common/toolchain/src \
 gecko_sdk_4.1.1/platform/driver/button/src \
 gecko_sdk_4.1.1/platform/driver/leddrv/src \
+gecko_sdk_4.1.1/platform/emdrv/dmadrv/src \
 gecko_sdk_4.1.1/platform/emdrv/gpiointerrupt/src \
 gecko_sdk_4.1.1/platform/emdrv/nvm3/src \
+gecko_sdk_4.1.1/platform/emdrv/uartdrv/src \
 gecko_sdk_4.1.1/platform/emlib/src \
 gecko_sdk_4.1.1/platform/peripheral/src \
 gecko_sdk_4.1.1/platform/radio/rail_lib/plugin/pa-conversions \
+gecko_sdk_4.1.1/platform/radio/rail_lib/plugin/rail_util_dma \
 gecko_sdk_4.1.1/platform/radio/rail_lib/plugin/rail_util_pti \
 gecko_sdk_4.1.1/platform/service/device_init/src \
 gecko_sdk_4.1.1/platform/service/hfxo_manager/src \

@@ -1,0 +1,6 @@
+22:25:47 **** Incremental Build of configuration GNU ARM v10.3.1 - Default for project voice_control_light ****
+make -j8 all 
+make: Nothing to be done for 'all'.
+
+22:25:51 Build Finished. 0 errors, 0 warnings. (took 4s.256ms)
+

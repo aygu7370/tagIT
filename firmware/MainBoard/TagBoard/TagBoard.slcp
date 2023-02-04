@@ -49,11 +49,13 @@ component:
 - {id: btmesh_provisioning_decorator}
 - {id: btmesh_sensor_server}
 - {id: btmesh_stack}
+- {id: si70xx_driver}
 - {id: sensor_select}
 - {id: btmesh_sensor_people_count}
 - {id: button}
 - {id: bootloader_interface}
 - {id: app_assert}
+- {id: sensor_rht}
 - {id: btmesh_generic_base}
 - {id: EFR32MG24B310F1536IM48}
 other_file:

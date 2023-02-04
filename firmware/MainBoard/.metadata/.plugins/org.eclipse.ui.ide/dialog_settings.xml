@@ -21,7 +21,18 @@
 		<item key="SmartImportRootWizardPage.STORE_NESTED_PROJECTS" value="true"/>
 		<item key="SmartImportRootWizardPage.STORE_CONFIGURE_NATURES" value="true"/>
 		<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+			<item value="D:\CUBoulder\LPDET\Project\tagIT\firmware\mic_tf_als_adxl"/>
+			<item value="D:\CUBoulder\LPDET\Project\tagIT\firmware\i2cspm_baremetal"/>
+			<item value="D:\CUBoulder\LPDET\Project\Integartion\tagIT\firmware\MainBoard"/>
 			<item value="D:\CUBoulder\LPDET\Project\tagIT\firmware\MainBoard"/>
+		</list>
+	</section>
+	<section name="ChooseWorkspaceDialogSettings">
+		<item key="DIALOG_X_ORIGIN" value="1479"/>
+		<item key="DIALOG_Y_ORIGIN" value="299"/>
+	</section>
+	<section name="WORKBENCH_SETTINGS">
+		<list key="ENABLED_TRANSFERS">
 		</list>
 	</section>
 </section>

@@ -119,6 +119,11 @@
 			<locationURI>STUDIO_SDK_LOC/platform/common/inc/sl_status.h</locationURI>
 		</link>
 		<link>
+			<name>gecko_sdk_4.1.1/platform/common/inc/sl_stdio.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/common/inc/sl_stdio.h</locationURI>
+		</link>
+		<link>
 			<name>gecko_sdk_4.1.1/platform/common/inc/sl_string.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/common/inc/sl_string.h</locationURI>
@@ -137,6 +142,11 @@
 			<name>gecko_sdk_4.1.1/platform/common/src/sl_status.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/common/src/sl_status.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/platform/common/src/sl_stdio.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/common/src/sl_stdio.c</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.1.1/platform/common/src/sl_string.c</name>
@@ -834,6 +844,16 @@
 			<locationURI>STUDIO_SDK_LOC/app/common/util/app_log/sl_app_log.h</locationURI>
 		</link>
 		<link>
+			<name>gecko_sdk_4.1.1/hardware/driver/mic/inc/sl_mic.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/hardware/driver/mic/inc/sl_mic.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/hardware/driver/mic/src/sl_mic_i2s.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/hardware/driver/mic/src/sl_mic_i2s.c</locationURI>
+		</link>
+		<link>
 			<name>gecko_sdk_4.1.1/platform/CMSIS/Core/Include/cmsis_compiler.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/CMSIS/Core/Include/cmsis_compiler.h</locationURI>
@@ -929,6 +949,16 @@
 			<locationURI>STUDIO_SDK_LOC/platform/emdrv/common/inc/ecode.h</locationURI>
 		</link>
 		<link>
+			<name>gecko_sdk_4.1.1/platform/emdrv/dmadrv/inc/dmadrv.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/emdrv/dmadrv/inc/dmadrv.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/platform/emdrv/dmadrv/src/dmadrv.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/emdrv/dmadrv/src/dmadrv.c</locationURI>
+		</link>
+		<link>
 			<name>gecko_sdk_4.1.1/platform/emdrv/gpiointerrupt/inc/gpiointerrupt.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/emdrv/gpiointerrupt/inc/gpiointerrupt.h</locationURI>
@@ -982,6 +1012,16 @@
 			<name>gecko_sdk_4.1.1/platform/emdrv/nvm3/src/nvm3_lock.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/emdrv/nvm3/src/nvm3_lock.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/platform/emdrv/uartdrv/inc/uartdrv.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/emdrv/uartdrv/inc/uartdrv.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/platform/emdrv/uartdrv/src/uartdrv.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/emdrv/uartdrv/src/uartdrv.c</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.1.1/platform/radio/rail_lib/common/rail.h</name>
@@ -1104,6 +1144,11 @@
 			<locationURI>STUDIO_SDK_LOC/platform/service/iostream/inc/sl_iostream.h</locationURI>
 		</link>
 		<link>
+			<name>gecko_sdk_4.1.1/platform/service/iostream/inc/sl_iostream_eusart.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/service/iostream/inc/sl_iostream_eusart.h</locationURI>
+		</link>
+		<link>
 			<name>gecko_sdk_4.1.1/platform/service/iostream/inc/sl_iostream_stdlib_config.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/service/iostream/inc/sl_iostream_stdlib_config.h</locationURI>
@@ -1127,6 +1172,11 @@
 			<name>gecko_sdk_4.1.1/platform/service/iostream/src/sl_iostream.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/service/iostream/src/sl_iostream.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/platform/service/iostream/src/sl_iostream_eusart.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/service/iostream/src/sl_iostream_eusart.c</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.1.1/platform/service/iostream/src/sl_iostream_retarget_stdio.c</name>
@@ -1557,6 +1607,16 @@
 			<name>gecko_sdk_4.1.1/platform/radio/rail_lib/plugin/pa-conversions/pa_curves_efr32.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/radio/rail_lib/plugin/pa-conversions/pa_curves_efr32.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/platform/radio/rail_lib/plugin/rail_util_dma/sl_rail_util_dma.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/radio/rail_lib/plugin/rail_util_dma/sl_rail_util_dma.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.1.1/platform/radio/rail_lib/plugin/rail_util_dma/sl_rail_util_dma.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/radio/rail_lib/plugin/rail_util_dma/sl_rail_util_dma.h</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.1.1/platform/radio/rail_lib/plugin/rail_util_pti/sl_rail_util_pti.c</name>
