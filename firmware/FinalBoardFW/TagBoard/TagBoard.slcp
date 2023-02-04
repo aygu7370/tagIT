@@ -34,6 +34,8 @@ component:
 - {id: btmesh_feature_node}
 - {id: in_place_ota_dfu}
 - {id: mpu}
+- instance: [buzzer]
+  id: pwm
 - instance: [led0, led1]
   id: simple_led
 - {id: app_btmesh_util}

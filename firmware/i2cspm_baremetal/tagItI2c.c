@@ -7,6 +7,8 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "tagItI2c.h"
 #include "sl_sleeptimer.h"
 #include "sl_simple_led.h"
@@ -151,7 +153,18 @@
 #define ADXL343_Z_AXIS_DATA_0 0x36
 #define ADXL343_Z_AXIS_DATA_1 0x37
 
+#define GESTURE_THRESHOLD     450
+
 static volatile uint8_t gEnableInterruptRegisterRead = 0;
+
+int16_t xVal = 0;
+int16_t yVal = 0;
+int16_t zVal = 0;
+int16_t xData[100];
+int16_t yData[100];
+int16_t zData[100];
+int xAvg, yAvg, zAvg = 0;
+int16_t vect = 0;
 
 I2C_TransferReturn_TypeDef
 I2C_transaction (I2C_TypeDef *i2c, uint32_t address, uint16_t flag,
@@ -408,7 +421,7 @@ void I2C_ALSInit()
     }
 }
 
-void I2C_GetALSData()
+uint16_t I2C_GetALSData()
 {
   uint8_t cmd = SI1145_REG_UVINDEX0; // Bit 3 specifies the measure command
   uint8_t uv[2], als_vis[2], als_ir[2];
@@ -454,6 +467,7 @@ void I2C_GetALSData()
 
     printf("UV[%d] VIS[%d] IR[%d]\r\n", (((uint16_t)uv[0]) | ((uint16_t)uv[1] << 8)), (((uint16_t)als_vis[0]) | ((uint16_t)als_vis[1] << 8)), (((uint16_t)als_ir[0]) | ((uint16_t)als_ir[1] << 8)));
 
+    return (((uint16_t)als_vis[0]) | ((uint16_t)als_vis[1] << 8));
 }
 
 void
@@ -570,22 +584,78 @@ I2C_GetAcclData ()
     printf ("Status %d: %d\r\n", __LINE__, ret);
   }
 
-  uint16_t xVal = (((uint16_t)value[0]) | ((uint16_t)value[1] << 8));
-  uint16_t yVal = (((uint16_t)value[2]) | ((uint16_t)value[3] << 8));
-  uint16_t zVal = (((uint16_t)value[4]) | ((uint16_t)value[5] << 8));
+  xVal = (((uint16_t)value[0]) | ((uint16_t)value[1] << 8));
+  yVal = (((uint16_t)value[2]) | ((uint16_t)value[3] << 8));
+  zVal = (((uint16_t)value[4]) | ((uint16_t)value[5] << 8));
 
-  printf ("X[%d] Y[%d] Z[%d]\r\n", xVal, yVal, zVal);
+//  printf ("X[%d] Y[%d] Z[%d]\r\n", xVal, yVal, zVal);
+}
+
+void calibrate(int16_t *xval, int16_t *yval, int16_t *zval, int *xavg, int *yavg, int *zavg){
+  int sum = 0, sum1 = 0, sum2 = 0;
+  for(int i = 0; i<100; i++){
+    I2C_GetAcclData();
+    xval[i] = xVal;
+    sum = xval[i] + sum;
+
+    yval[i] = yVal;
+    sum1 = yval[i] + sum1;
+
+    zval[i] = zVal;
+    sum2 = zval[i] + sum2;
+  }
+  *xavg = sum/100;
+
+  *yavg = sum1/100;
+
+  *zavg = sum2/100;
+}
+
+bool detect_gesture(){
+  I2C_GetAcclData();
+
+  vect = sqrt(((xVal - xAvg) * (xVal - xAvg)) + ((yVal - yAvg) *
+            (yVal - yAvg)) + ((zVal - zAvg) * (zVal - zAvg)));
+//  printf("R[%d]\r\n", vect);
+
+//  delay(100);
+  if(vect > GESTURE_THRESHOLD){
+//    count++;
+//    step_flag = true;
+      printf("gest detect\r\n");
+      return true;
+  }
+  else{
+      return false;
+  }
+//  else if((total_avg[i] > GESTURE_THRESHOLD) && (step_flag == true)){
+//    //Don't count
+//    __asm volatile ("nop");
+//  }
+//
+//  if((((total_avg[i] - total_avg[i-1]) > STEP_CHANGE_THRESHOLD)||
+//    ((total_avg[i-1] - total_avg[i]) > STEP_CHANGE_THRESHOLD)) && (step_flag == true)){
+//    step_flag = false;
+//  }
 }
 
 void getTagItInit()
 {
-  I2C_AccelInit();
+//  I2C_AccelInit();
 //  I2C_GetDeviceID();
   I2C_ALSInit();
+
+//  calibrate(xData, yData, zData, &xAvg, &yAvg, &zAvg);
 }
 
 void getTagItSensorData()
 {
-  I2C_GetAcclData();
-  I2C_GetALSData();
+//  I2C_GetAcclData();
+  if(I2C_GetALSData() >= 290){
+      printf("light\r\n");
+  }
+  else{
+      printf("dark\r\n");
+  }
+//  detect_gesture();
 }

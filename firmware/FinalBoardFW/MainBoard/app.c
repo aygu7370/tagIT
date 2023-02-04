@@ -61,6 +61,8 @@
 #include "sl_sleeptimer.h"
 #include "ml/sensory.h"
 
+#include "tagItI2c.h"
+
 #ifdef SL_COMPONENT_CATALOG_PRESENT
 #include "sl_component_catalog.h"
 #endif // SL_COMPONENT_CATALOG_PRESENT
@@ -123,6 +125,8 @@ static mesh_device_properties_t current_property = PRESENT_AMBIENT_TEMPERATURE;
 #define DISPLAY_INFERENCE_TIME
 #define RED_LED       sl_led_led0
 #define GREEN_LED     sl_led_led1
+
+bool fGestureDetected = false;
 
 static int16_t mic_buffer[2 * BRICK_SIZE_SAMPLES];
 static sl_sleeptimer_timer_handle_t timer;
@@ -235,7 +239,7 @@ TagBoard_RegisterALSResponse (uint16_t model_id, uint16_t element_index,
 //  app_log("Current Data  kind[%x] level[%d]\r\n", current->kind,
 //          current->level);
 
-  app_log("critical:%x:%d\r\n", server_addr, current->level);
+  app_log("%x:%d\r\n", server_addr, current->level);
 }
 /**************************************************************************//**
  * Application Init.
@@ -249,6 +253,7 @@ app_init (void)
   /////////////////////////////////////////////////////////////////////////////
   app_button_press_enable ();
   mic_app_init ();
+  getMainBrdInit();
 
   mesh_lib_generic_client_register_handler (MESH_GENERIC_LEVEL_CLIENT_MODEL_ID, 0, TagBoard_RegisterALSResponse);
 }
@@ -264,6 +269,12 @@ app_process_action (void)
   // This is called infinitely.                                              //
   // Do not call blocking functions from here!                               //
   /////////////////////////////////////////////////////////////////////////////
+  if(detect_gesture()){
+      fGestureDetected = false;
+  }
+  else{
+      fGestureDetected = true;
+  }
 }
 
 /***************************************************************************//**
@@ -761,7 +772,12 @@ return "Unknown";
 static bool
 wakeword_should_enable_red_led (uint16_t word_id)
 {
-return word_id == 1 || word_id == 3;
+  if(fGestureDetected){
+      return word_id == 1 || word_id == 3;
+  }
+  else{
+      return 0;
+  }
 }
 
 /***************************************************************************//**
@@ -770,7 +786,12 @@ return word_id == 1 || word_id == 3;
 static bool
 wakeword_should_enable_green_led (uint16_t word_id)
 {
-return word_id == 1 || word_id == 4;
+  if(fGestureDetected){
+      return word_id == 1 || word_id == 4;
+  }
+  else{
+      return 0;
+  }
 }
 
 /***************************************************************************//**
@@ -803,39 +824,44 @@ else if (context->error != ERR_OK)
     return;
   }
 
-const char *label = wakeword_label (context->wordID);
-bool red_led_on = wakeword_should_enable_red_led (context->wordID);
-bool green_led_on = wakeword_should_enable_green_led (context->wordID);
 
-int8_t confidence_pct = (int8_t) (0.0030517578125 * context->nnpqScore); // (100 * (1/32768))
-//printf ("[k=%6lu] Recognized %-13s (id=%d) with confidence %d%%\n", \
-        (long unsigned int) context->timestep, label, context->wordID, \
-        confidence_pct);
-// The LED timer timeout for the model must be specified in model/<name>/command.h
-if (should_have_timeout_for_leds ())
-  {
-    schedule_timer_to_turn_off_leds (1500);
-  }
+      const char *label = wakeword_label (context->wordID);
+      bool red_led_on = wakeword_should_enable_red_led (context->wordID);
+      bool green_led_on = wakeword_should_enable_green_led (context->wordID);
 
-if (red_led_on)
-  {
-    sl_led_turn_on (&RED_LED);
-    TagBoard_Node_1_Toggle ();
-  }
-else
-  {
-    sl_led_turn_off (&RED_LED);
-//      TagBoard_Node_1_Toggle();
-  }
+      int8_t confidence_pct = (int8_t) (0.0030517578125 * context->nnpqScore); // (100 * (1/32768))
+//      printf ("[k=%6lu] Recognized %-13s (id=%d) with confidence %d%%\n", \
+              (long unsigned int) context->timestep, label, context->wordID, \
+              confidence_pct);
+   if(fGestureDetected){
+     if(confidence_pct > 85){
+       // The LED timer timeout for the model must be specified in model/<name>/command.h
+          if (should_have_timeout_for_leds ())
+          {
+            schedule_timer_to_turn_off_leds (1500);
+          }
 
-if (green_led_on)
-  {
-    sl_led_turn_on (&GREEN_LED);
-    TagBoard_Node_2_Toggle ();
-  }
-else
-  {
-    sl_led_turn_off (&GREEN_LED);
-//      TagBoard_Node_2_Toggle();
+        if (red_led_on)
+          {
+            sl_led_turn_on (&RED_LED);
+            TagBoard_Node_1_Toggle ();
+          }
+        else
+          {
+            sl_led_turn_off (&RED_LED);
+        //      TagBoard_Node_1_Toggle();
+          }
+
+        if (green_led_on)
+          {
+            sl_led_turn_on (&GREEN_LED);
+            TagBoard_Node_2_Toggle ();
+          }
+        else
+          {
+            sl_led_turn_off (&GREEN_LED);
+        //      TagBoard_Node_2_Toggle();
+          }
+     }
   }
 }

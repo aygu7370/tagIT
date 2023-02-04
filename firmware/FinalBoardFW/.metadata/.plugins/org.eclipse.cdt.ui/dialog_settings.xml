@@ -4,4 +4,15 @@
 	</section>
 	<section name="org.eclipse.cdt.ui.text.hover.CMacroExpansionExploration">
 	</section>
+	<section name="PDOMSearchPage">
+		<item key="caseSensitive" value="false"/>
+		<item key="searchFlags" value="227191"/>
+		<list key="previousPatterns">
+			<item value="sl_event_handler"/>
+			<item value="sl_event_handlerh"/>
+			<item value="sl_driver_init"/>
+			<item value="sl_i2cspm_init_instances"/>
+			<item value="I2CSPM_Init"/>
+		</list>
+	</section>
 </section>

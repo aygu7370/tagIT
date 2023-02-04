@@ -29,8 +29,8 @@ sdk: {id: gecko_sdk, version: 4.1.1}
 toolchain_settings: []
 component:
 - {id: EFR32MG24B210F1536IM48}
-- {id: sl_system}
 - {id: iostream_retarget_stdio}
+- {id: sl_system}
 - {id: brd4186c}
 - {id: iostream_recommended_stream}
 - instance: [sensor]

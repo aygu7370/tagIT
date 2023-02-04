@@ -17,9 +17,11 @@ void I2C_ResetAccelInterrupts();
 void I2C_AccelInit();
 void I2C_GetDeviceID();
 void I2C_ALSInit();
-void I2C_GetALSData();
+uint16_t I2C_GetALSData();
 void I2C_GetAcclData ();
 void GPIO_InitForInterrupt();
+bool detect_gesture();
+void calibrate(int16_t *xval, int16_t *yval, int16_t *zval, int *xavg, int *yavg, int *zavg);
 
 
 /************************************************************

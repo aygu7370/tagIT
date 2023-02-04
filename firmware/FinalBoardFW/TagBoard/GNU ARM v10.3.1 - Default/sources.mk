@@ -41,6 +41,7 @@ gecko_sdk_4.1.1/platform/common/toolchain/src \
 gecko_sdk_4.1.1/platform/driver/button/src \
 gecko_sdk_4.1.1/platform/driver/i2cspm/src \
 gecko_sdk_4.1.1/platform/driver/leddrv/src \
+gecko_sdk_4.1.1/platform/driver/pwm/src \
 gecko_sdk_4.1.1/platform/emdrv/gpiointerrupt/src \
 gecko_sdk_4.1.1/platform/emdrv/nvm3/src \
 gecko_sdk_4.1.1/platform/emlib/src \

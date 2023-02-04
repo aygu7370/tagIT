@@ -60,6 +60,7 @@
 #include "sl_btmesh_generic_model_capi_types.h"
 
 #include "TagBoard.h"
+#include "tagItI2c.h"
 
 /// High Priority
 #define HIGH_PRIORITY                  0
@@ -119,6 +120,7 @@ SL_WEAK void app_init(void)
   // Put your additional application init code here!                         //
   // This is called once during start-up.                                    //
   /////////////////////////////////////////////////////////////////////////////
+  getMainBrdInit();
 }
 
 /**************************************************************************//**
